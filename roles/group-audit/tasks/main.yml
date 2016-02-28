@@ -1,0 +1,33 @@
+---
+- name: "Allow  port  80  &  443  from  the  world "
+  local_action:
+    module: ec2_group
+    name: web-sg
+    description: Allow  port  80  &  443  from  the  world
+    region: "{{ item }}"
+    rules:
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
+  register: web_ingress
+  with_items: regions
+
+
+- name: "Allow  port  53  from  the  world "
+  local_action:
+    module: ec2_group
+    name: dns-sg
+    description: Allow  port  53  from  the  world
+    region: "{{ item.item }}"
+    rules:
+      - proto: udp
+        from_port: 53
+        to_port: 53
+        group_id: "{{ item.group_id }}"
+  with_items: web_ingress.results
+
